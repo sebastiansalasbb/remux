@@ -1,9 +1,62 @@
 <script setup lang="ts">
+import EditPencil from '@/components/icons/EditPencil.vue'
+import Trash3Delete from '@/components/icons/Trash3Delete.vue'
 import { useEmpresaStore } from '@/stores/empresas'
 import { storeToRefs } from 'pinia'
+import { reactive, ref } from 'vue'
 
 const store = useEmpresaStore()
 const { empresas } = storeToRefs(store)
+const { agregarEmpresa, eliminarEmpresa } = store
+
+const formState = reactive({
+  razonSocial: '',
+  rutEmpresa: '',
+  nombreRepresentante: '',
+  rutRepresentante: '',
+  domicilioEmpresaCalle: '',
+  domicilioEmpresaComuna: '',
+  domicilioEmpresaCiudad: '',
+  emailEmpresa: '',
+})
+
+const showSuccess = ref(false)
+const empresaBorrada = ref(false)
+
+const idDelete = ref('')
+
+const guardarIDEmpresa = (id) => {
+  idDelete.value = id
+}
+
+const deleteEmpresa = () => {
+  eliminarEmpresa(idDelete.value)
+  empresaBorrada.value = true
+}
+
+const resetearEstadoEmpresaBorrada = () => {
+  empresaBorrada.value = false
+}
+
+const onSubmit = () => {
+  const objEmpresa = { id: crypto.randomUUID(), ...formState }
+  agregarEmpresa(objEmpresa)
+
+  formState.razonSocial = ''
+  formState.rutEmpresa = ''
+  formState.nombreRepresentante = ''
+  formState.rutRepresentante = ''
+  formState.domicilioEmpresaCalle = ''
+  formState.domicilioEmpresaComuna = ''
+  formState.domicilioEmpresaCiudad = ''
+  formState.emailEmpresa = ''
+
+  showSuccess.value = true
+
+  setTimeout(() => {
+    showSuccess.value = false
+  }, 2500)
+}
 </script>
 
 <template>
@@ -15,75 +68,218 @@ const { empresas } = storeToRefs(store)
       </button>
     </div>
 
-    <form>
-      <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="razonSocial" placeholder="name@example.com" />
-        <label for="razonSocial">Razón Social</label>
-      </div>
-      <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="rutEmpresa" placeholder="Password" />
-        <label for="rutEmpresa">Rut Empresa</label>
-      </div>
-    </form>
-
-    <!-- Modal -->
-    <div
-      class="modal fade"
-      id="exampleModal"
-      tabindex="-1"
-      aria-labelledby="exampleModalLabel"
-      aria-hidden="true"
-      data-bs-backdrop="static"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="exampleModalLabel">Registrar Empresa</h1>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">...</div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <table v-if="empresas.length > 0" class="table">
+    <table v-if="empresas.length > 0" class="table table-hover mt-5">
       <thead>
         <tr>
-          <th scope="col">#</th>
-          <th scope="col">First</th>
-          <th scope="col">Last</th>
-          <th scope="col">Handle</th>
+          <th scope="col">Rut</th>
+          <th scope="col">Razón Social</th>
+          <th scope="col">Editar</th>
+          <th scope="col">Borrar</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <th scope="row">1</th>
-          <td>Mark</td>
-          <td>Otto</td>
-          <td>@mdo</td>
-        </tr>
-        <tr>
-          <th scope="row">2</th>
-          <td>Jacob</td>
-          <td>Thornton</td>
-          <td>@fat</td>
-        </tr>
-        <tr>
-          <th scope="row">3</th>
-          <td>John</td>
-          <td>Doe</td>
-          <td>@social</td>
+        <tr v-for="value in empresas" :key="value.id">
+          <th scope="row">{{ value.rutEmpresa }}</th>
+          <td>{{ value.razonSocial }}</td>
+          <td>
+            <RouterLink :to="`/empresas/${value.id}`"><EditPencil /></RouterLink>
+          </td>
+          <td>
+            <!-- Button trigger modal -->
+            <Trash3Delete
+              data-bs-toggle="modal"
+              data-bs-target="#modalDelete"
+              @click="guardarIDEmpresa(value.id)"
+            />
+          </td>
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- Modal Form -->
+  <div
+    class="modal fade"
+    id="exampleModal"
+    tabindex="-1"
+    aria-labelledby="exampleModalLabel"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Registrar Empresa</h1>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="onSubmit">
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                class="form-control"
+                id="razonSocial"
+                placeholder="nombre empresa"
+                v-model="formState.razonSocial"
+                required
+              />
+              <label for="razonSocial">Razón Social</label>
+            </div>
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                class="form-control"
+                id="rutEmpresa"
+                placeholder="77777777-7"
+                v-model="formState.rutEmpresa"
+                required
+              />
+              <label for="rutEmpresa">Rut Empresa</label>
+            </div>
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                class="form-control"
+                id="nombreRepresentante"
+                placeholder="Juan perez perez"
+                v-model="formState.nombreRepresentante"
+                required
+              />
+              <label for="nombreRepresentante">Nombre Representante Legal</label>
+            </div>
+
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                class="form-control"
+                id="rutRepresentante"
+                placeholder="15555555-5"
+                v-model="formState.rutRepresentante"
+                required
+              />
+              <label for="rutRepresentante">Run Representante Legal</label>
+            </div>
+
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                class="form-control"
+                id="domimicilioEmpresa"
+                placeholder="domimicilioEmpresa"
+                v-model="formState.domicilioEmpresaCalle"
+                required
+              />
+              <label for="domimicilioEmpresa">Domicilio Empresa (calle, numero, oficina)</label>
+            </div>
+
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                class="form-control"
+                id="domimicilioEmpresaComuna"
+                placeholder="domimicilioEmpresaComuna"
+                v-model="formState.domicilioEmpresaComuna"
+                required
+              />
+              <label for="domimicilioEmpresaComuna">Domicilio Empresa (comuna)</label>
+            </div>
+
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                class="form-control"
+                id="domimicilioEmpresaCiudad"
+                placeholder="domimicilioEmpresaCiudad"
+                v-model="formState.domicilioEmpresaCiudad"
+                required
+              />
+              <label for="domimicilioEmpresaCiudad">Domicilio Empresa (Ciudad)</label>
+            </div>
+
+            <div class="form-floating mb-3">
+              <input
+                type="email"
+                class="form-control"
+                id="emailEmpresa"
+                placeholder="emailEmpresa"
+                v-model="formState.emailEmpresa"
+                required
+              />
+              <label for="emailEmpresa">Email Empresa</label>
+            </div>
+
+            <div v-show="showSuccess === true" class="alert alert-success" role="alert">
+              Empresa guardada exitosamente!
+            </div>
+
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                Close
+              </button>
+              <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Delete-->
+  <div
+    class="modal fade"
+    id="modalDelete"
+    tabindex="-1"
+    aria-labelledby="modalDeleteLabel"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="modalDeleteLabel">Eliminar Empresa</h1>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+            @click="resetearEstadoEmpresaBorrada"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <div v-if="empresaBorrada === false" class="alert alert-danger" role="alert">
+            Al eliminar una empresa perderás todos los datos y también el de los trabajadores!
+          </div>
+          <div v-else class="alert alert-success" role="alert">Has borrado todos los datos</div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            @click="resetearEstadoEmpresaBorrada"
+          >
+            Close
+          </button>
+          <button
+            v-if="empresaBorrada === false"
+            @click="deleteEmpresa"
+            type="button"
+            class="btn btn-danger"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

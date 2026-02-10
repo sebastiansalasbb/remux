@@ -1,1 +1,12 @@
 @import './base.css';
+
+.bi-trash3-fill:hover,
+.bi-pencil:hover {
+  cursor: pointer;
+}
+
+.bi-pencil,
+.bi-trash3-fill {
+  width: 24px;
+  height: 24px;
+}
