@@ -2,6 +2,7 @@
 import EditPencil from '@/components/icons/EditPencil.vue'
 import Trash3Delete from '@/components/icons/Trash3Delete.vue'
 import { useEmpresaStore } from '@/stores/empresas'
+import type { EmpresaCreate } from '@/types'
 import { storeToRefs } from 'pinia'
 import { reactive, ref } from 'vue'
 
@@ -9,7 +10,7 @@ const store = useEmpresaStore()
 const { empresas } = storeToRefs(store)
 const { agregarEmpresa, eliminarEmpresa } = store
 
-const formState = reactive({
+const formState = reactive<EmpresaCreate>({
   razonSocial: '',
   rutEmpresa: '',
   nombreRepresentante: '',
@@ -20,25 +21,25 @@ const formState = reactive({
   emailEmpresa: '',
 })
 
-const showSuccess = ref(false)
-const empresaBorrada = ref(false)
+const showSuccess = ref<boolean>(false)
+const empresaBorrada = ref<boolean>(false)
 
-const idDelete = ref('')
+const idDelete = ref<string>('')
 
-const guardarIDEmpresa = (id) => {
+const guardarIDEmpresa = (id: string): void => {
   idDelete.value = id
 }
 
-const deleteEmpresa = () => {
+const deleteEmpresa = (): void => {
   eliminarEmpresa(idDelete.value)
   empresaBorrada.value = true
 }
 
-const resetearEstadoEmpresaBorrada = () => {
+const resetearEstadoEmpresaBorrada = (): void => {
   empresaBorrada.value = false
 }
 
-const onSubmit = () => {
+const onSubmit = (): void => {
   const objEmpresa = { id: crypto.randomUUID(), ...formState }
   agregarEmpresa(objEmpresa)
 

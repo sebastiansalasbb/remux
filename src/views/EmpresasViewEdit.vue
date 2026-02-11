@@ -1,22 +1,26 @@
 <script setup lang="ts">
 import { useEmpresaStore } from '@/stores/empresas'
+import type { EmpresaEdit } from '@/types'
 import { storeToRefs } from 'pinia'
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
-  id: String,
+  id: {
+    type: String,
+    required: true,
+  },
 })
 
 const router = useRouter()
 
-const volver = () => {
+const volver = (): void => {
   router.go(-1)
 }
 
-const showSuccess = ref(false)
+const showSuccess = ref<boolean>(false)
 
-const formState = reactive({
+const formState = reactive<EmpresaEdit>({
   id: '',
   razonSocial: '',
   rutEmpresa: '',
@@ -32,24 +36,26 @@ const store = useEmpresaStore()
 const { empresas } = storeToRefs(store)
 const { editarEmpresa } = store
 
-const empresaFiltrada = () => {
+const empresaFiltrada = (): void => {
   const empresaArray = empresas.value.filter((empresa) => empresa.id === props.id)
 
   const empresa = empresaArray[0]
 
-  formState.id = empresa.id
-  formState.razonSocial = empresa.razonSocial
-  formState.rutEmpresa = empresa.rutEmpresa
-  formState.nombreRepresentante = empresa.nombreRepresentante
-  formState.rutRepresentante = empresa.rutRepresentante
-  formState.domicilioEmpresaCalle = empresa.domicilioEmpresaCalle
-  formState.domicilioEmpresaComuna = empresa.domicilioEmpresaComuna
-  formState.domicilioEmpresaCiudad = empresa.domicilioEmpresaCiudad
-  formState.emailEmpresa = empresa.emailEmpresa
+  if (empresa) {
+    formState.id = empresa.id
+    formState.razonSocial = empresa.razonSocial
+    formState.rutEmpresa = empresa.rutEmpresa
+    formState.nombreRepresentante = empresa.nombreRepresentante
+    formState.rutRepresentante = empresa.rutRepresentante
+    formState.domicilioEmpresaCalle = empresa.domicilioEmpresaCalle
+    formState.domicilioEmpresaComuna = empresa.domicilioEmpresaComuna
+    formState.domicilioEmpresaCiudad = empresa.domicilioEmpresaCiudad
+    formState.emailEmpresa = empresa.emailEmpresa
+  }
 }
 empresaFiltrada()
 
-const onSubmit = () => {
+const onSubmit = (): void => {
   editarEmpresa(formState)
   showSuccess.value = true
 
